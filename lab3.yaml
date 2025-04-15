@@ -128,13 +128,6 @@
           name: openjdk-21-jdk-headless
           state: present
         become: yes
-      
-      - name: Copy taskbot.jar
-        copy:
-          src: ~/taskbot.jar
-          dest: /home/ubuntu/taskbot.jar
-          mode: '0755'
-        become: no
 
       - name: Create taskbot app service
         copy:
