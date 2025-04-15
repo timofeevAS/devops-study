@@ -10,14 +10,17 @@
         src: "{{ terraform_rc_path }}"
         dest: ~/.terraformrc
 
-    - name: Terraform run task.
+    - name: Run terraform
+      environment:
+        TF_VAR_username: "{{ lookup('env', 'TF_VAR_username') }}"
+        TF_VAR_userpassword: "{{ lookup('env', 'TF_VAR_userpassword') }}"
       terraform:
         project_path: "{{ terraform_path }}"
         force_init: yes
         state: present
       register: trfrm
 
-    - name: Export created server IPv4 into env file
+    - name: Export server IP up
       lineinfile:
         path: ~/myenv
         regexp: '^DEV_SERVER_IP='
@@ -25,7 +28,7 @@
         mode: '0644'
         create: yes
 
-    - name: Create ansible host
+    - name: Add instance host (Ansible term)
       add_host:
         name: timofeev-server
         groups: nodes
@@ -34,23 +37,21 @@
         ansible_ssh_private_key_file: ~/.ssh/timofeevssh
         ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 
-- name: Instance synchronization
+- name: Wait for instance creating
   hosts: localhost
-  connection: local
+  connection: local     
   
   tasks:
-    - name: SSH connection synchronization
+    - name: Wait for a ssh port become available
       wait_for:
         host: "{{ trfrm.outputs.servers.value.serverip }}"
         port: 22
-
-    
 
 - name: Start production database 
   hosts: timofeev-server
   become: yes
   vars:
-    sql_init_path: create.sql
+    sql_path: create.sql
   tasks:
     - name: Update apt package cache
       apt:
@@ -79,7 +80,7 @@
         state: present
 
 
-    # [1] https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_user_module.html
+    # https://docs.ansible.com/ansible/latest/collections/community/postgresql/postgresql_user_module.html
     - name: Set user password
       become_user: postgres
       community.postgresql.postgresql_user:
@@ -92,15 +93,15 @@
         name: tasks
         login_password: 424242
 
-    - name: Copy sql script
+    - name: Copy sql import script
       copy:
-        src: "{{ sql_init_path  }}"
+        src: "{{ sql_path  }}"
         dest: /tmp/create.sql
         mode: u=rw,g=r,o=r
         owner: postgres
         group: postgres
 
-    - name: Init tables
+    - name: Create tables
       become_user: postgres
       community.postgresql.postgresql_script:
         db: tasks
@@ -115,7 +116,7 @@
         line: "127.0.0.1 db"
         create: yes
 
-- name: Prepare env for deploy
+- name: Prepare production for deploy
   hosts: timofeev-server
   vars:
     service_path: taskbot.service
@@ -129,29 +130,22 @@
           state: present
         become: yes
 
-      - name: Create taskbot app service
+      - name: Create bot app service
         copy:
           src: "{{ service_path }}"
           dest: /etc/systemd/system/taskbot.service
           mode: '0777'
         become: yes
-      
     
-      - name: Reload systemd
+      - name: Reload services
         systemd:
           daemon_reload: true
-        become: yes
-
-      - name: Start taskbot service
-        systemd:
           name: taskbot
-          state: started
-          enabled: yes
+          state: stopped
         become: yes
-
    
       rescue:
-       - name: Delete resources if doesn't success (ERROR)
+       - name: Clean up resources in case of error
          terraform:
            project_path: "{{ terraform_path }}"
            state: absent
