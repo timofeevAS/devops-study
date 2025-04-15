@@ -53,11 +53,10 @@
     sql_init_path: create.sql
   tasks:
     - name: Update and upgrade apt packages
-      become: true
       apt:
-        upgrade: yes
         update_cache: yes
-        cache_valid_time: 86400 #One day
+        upgrade: yes
+      become: true
         
     - name: Install `postgresql` server
       apt:
