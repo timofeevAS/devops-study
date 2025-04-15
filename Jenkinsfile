@@ -1,24 +1,24 @@
 pipeline {
-    agent { label '2025-kondraev' }
+    agent { label 'timofeev-jenkins' }
 
     stages {
-        stage('Prepare TaskBot for Deploy') {
+        stage('Prepare infra and build.') {
             parallel {
-                stage('Build TaskBot') {
+                stage('Build stage.') {
                     steps {
-                        build(job: 'kondraev-taskbot-build')
+                        build(job: 'timofeev-buildjob')
                     }
                 }
-                stage('Prepare infrastructure for TaskBot') {
+                stage('Infrastacture stage.') {
                     steps {
-                        build(job: 'kondraev-infra-ansible-dev')
+                        build(job: 'timofeev-infra-ansible-dev')
                     }
                 }
             }
         }
-        stage('Deploy TaskBot') {    
+        stage('Deploy stage') {    
             steps {
-                build(job: 'kondraev-taskbot-deploy', parameters: [string(name: 'SERVER_ADDRESS', value: env.DEV_SERVER_IP)])
+                    build(job: 'timofeev-infra-ansible-dev')
             }
         }
     }
