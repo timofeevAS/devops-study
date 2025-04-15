@@ -1,11 +1,8 @@
+# export TF_VAR_username=
 variable "username" {
-  type        = string
-  sensitive   = true
 }
-
+# export TF_VAR_userpassword=
 variable "userpassword" {
-  type        = string
-  sensitive   = true
 }
 
 
