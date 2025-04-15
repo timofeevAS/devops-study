@@ -58,8 +58,6 @@
         
     - name: Install `postgresql` server
       apt:
-        update_cache: true
-        upgrade: yes
         name: postgresql
         state: present
 
