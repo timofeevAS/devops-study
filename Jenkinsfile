@@ -12,10 +12,10 @@ pipeline {
                 build(job: 'timofeev-infra-ansible-dev')
             }
         }
-        }
-        stage('Deploy stage') {    
+        stage('Deploy stage') {
             steps {
-                    build(job: 'timofeev-infra-ansible-dev')
+                build(job: 'timofeev-infra-ansible-dev')
             }
         }
+    }
 }
