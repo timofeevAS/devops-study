@@ -17,7 +17,7 @@
         state: present
       register: trfrm
 
-    - name: Export server IPv4
+    - name: Export created server IPv4 into env file
       lineinfile:
         path: ~/myenv
         regexp: '^DEV_SERVER_IP='
@@ -25,7 +25,7 @@
         mode: '0644'
         create: yes
 
-    - name: Add instance host (Ansible term)
+    - name: Create ansible host
       add_host:
         name: timofeev-server
         groups: nodes
@@ -92,7 +92,7 @@
         name: tasks
         login_password: 424242
 
-    - name: Copy sql import script
+    - name: Copy sql script
       copy:
         src: "{{ sql_init_path  }}"
         dest: /tmp/create.sql
@@ -100,7 +100,7 @@
         owner: postgres
         group: postgres
 
-    - name: Create tables
+    - name: Init tables
       become_user: postgres
       community.postgresql.postgresql_script:
         db: tasks
@@ -115,7 +115,7 @@
         line: "127.0.0.1 db"
         create: yes
 
-- name: Prepare production for deploy
+- name: Prepare env for deploy
   hosts: timofeev-server
   vars:
     service_path: taskbot.service
@@ -131,7 +131,7 @@
       
       - name: Copy taskbot.jar
         copy:
-          src: /home/ubuntu/taskbot.jar
+          src: ~/taskbot.jar
           dest: /home/ubuntu/taskbot.jar
           mode: '0755'
         become: no
@@ -144,12 +144,12 @@
         become: yes
       
     
-      - name: Reload systemd daemon
+      - name: Reload systemd
         systemd:
           daemon_reload: true
         become: yes
 
-      - name: Start botserver service
+      - name: Start taskbot service
         systemd:
           name: taskbot
           state: started
