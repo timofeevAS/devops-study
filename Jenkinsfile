@@ -18,7 +18,7 @@ pipeline {
         }
         stage('Deploy stage') {    
             steps {
-                    build(job: 'timofeev-infra-ansible-dev')
+                    build(job: 'timofeev-deployjob')
             }
         }
     }
