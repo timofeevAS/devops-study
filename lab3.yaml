@@ -54,10 +54,12 @@
   tasks:
     - name: Update apt package cache
       apt:
-        update_cache: yes
+        update_cache: true
         
     - name: Install `postgresql` server
       apt:
+        update_cache: true
+        upgrade: yes
         name: postgresql
         state: present
 
