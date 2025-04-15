@@ -52,11 +52,9 @@
   vars:
     sql_init_path: create.sql
   tasks:
-    - name: Update and upgrade apt packages
+    - name: Update apt package cache
       apt:
         update_cache: yes
-        upgrade: yes
-      become: true
         
     - name: Install `postgresql` server
       apt:
