@@ -8,3 +8,4 @@ secrets.txt
 !/main.tf
 !/output.tf
 !/set-authdata.sh
+!/meta.txt

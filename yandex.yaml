@@ -1,0 +1,146 @@
+- name: Create production server
+  hosts: localhost
+  connection: local
+  vars:
+    terraform_rc_path: .terraformrc
+    terraform_path: ./tf-yandexcloud
+  tasks:
+    - name: Prepare TF (set yandex mirror)
+      copy:
+        src: "{{ terraform_rc_path }}"
+        dest: ~/.terraformrc
+
+    - name: Run terraform
+      terraform:
+        project_path: "{{ terraform_path }}"
+        force_init: yes
+        state: present
+      register: trfm
+
+    - name: Export server IP up
+      lineinfile:
+        path: ~/myenv
+        regexp: '^DEPLOYMENT_SERVER_IP='
+        line: "DEPLOYMENT_SERVER_IP={{ trfm.outputs.servers.value.serverip }}"
+        mode: '0644'
+        create: yes
+
+    - name: Add instance host (Ansible term)
+      add_host:
+        name: timofeev-server
+        groups: nodes
+        ansible_ssh_user: ubuntu
+        ansible_host: "{{ trfm.outputs.servers.value.serverip }}"
+        ansible_ssh_private_key_file: ~/.ssh/id_rsa_yandex
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"  
+
+- name: Wait for server availability
+  hosts: localhost
+  connection: local     
+  tasks:
+    - name: Wait for SSH port to become available
+      wait_for:
+        host: "{{ trfm.outputs.servers.value.serverip }}"
+        port: 22
+        timeout: 300
+
+- name: Configure PostgreSQL database
+  hosts: timofeev-server
+  become: yes
+  vars:
+    sql_path: create.sql
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    - name: Install PostgreSQL server
+      apt:
+        name: postgresql
+        state: present
+
+    - name: Install psycopg2 for PostgreSQL integration
+      apt:
+        name: python3-psycopg2
+        state: present
+
+    - name: Ensure PostgreSQL service is running
+      service:
+        name: postgresql
+        state: restarted
+        enabled: yes
+
+    - name: Install ACL utilities
+      apt:
+        name: acl
+        state: present
+
+    - name: Set PostgreSQL admin password
+      become_user: postgres
+      community.postgresql.postgresql_user:
+        name: postgres
+        password: 424242
+
+    - name: Create application database
+      become_user: postgres
+      community.postgresql.postgresql_db:
+        name: tasks
+        login_password: 424242
+
+    - name: Upload database schema script
+      copy:
+        src: "{{ sql_path }}"
+        dest: /tmp/create.sql
+        mode: u=rw,g=r,o=r
+        owner: postgres
+        group: postgres
+
+    - name: Initialize database schema
+      become_user: postgres
+      community.postgresql.postgresql_script:
+        db: tasks
+        path: /tmp/create.sql
+        login_password: 424242 
+
+    - name: Configure local DNS entry for database
+      become: yes
+      lineinfile:
+        path: /etc/hosts
+        regexp: ' db$'
+        line: "127.0.0.1 db"
+        create: yes
+
+- name: Prepare application environment
+  hosts: timofeev-server
+  vars:
+    service_path: taskbot.service
+    terraform_path: tf
+  tasks:
+    - block:
+      - name: Install Java Development Kit
+        apt:
+          update_cache: yes
+          name: openjdk-21-jdk-headless
+          state: present
+        become: yes
+
+      - name: Deploy systemd service file
+        copy:
+          src: "{{ service_path }}"
+          dest: /etc/systemd/system/taskbot.service
+          mode: '0777'
+        become: yes
+    
+      - name: Reload systemd configuration
+        systemd:
+          daemon_reload: true
+          name: taskbot
+          state: stopped
+        become: yes
+   
+      rescue:
+       - name: Rollback infrastructure on failure
+         terraform:
+           project_path: "{{ terraform_path }}"
+           state: absent
+         delegate_to: localhost
