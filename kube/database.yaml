@@ -28,7 +28,7 @@ spec:
           mountPath: /var/lib/postgresql/data
       volumes:
       - name: db-data
-        emptyDir: {}  # Для продакшена замените на PersistentVolume
+        emptyDir: {}
 
 ---
 apiVersion: v1
