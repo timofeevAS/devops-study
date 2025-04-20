@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: timofeev-db
+  namespace: timofeev-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: timofeev-db
+  template:
+    metadata:
+      labels:
+        app: timofeev-db
+    spec:
+      containers:
+      - name: postgres
+        image: cr.yandex/crpo7tdod3sj8k3of2r6/taskbot-db:latest
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "424242"
+        - name: POSTGRES_DB
+          value: "tasks"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: db-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: db-data
+        emptyDir: {}  # Для продакшена замените на PersistentVolume
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  namespace: timofeev-ns
+spec:
+  selector:
+    app: timofeev-db
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
