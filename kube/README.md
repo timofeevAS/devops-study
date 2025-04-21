@@ -23,4 +23,8 @@ kubectl exec -it <pod> -n timofeev-ns -- \
   psql -h db -U postgres -d tasks -c '\dt'"
 
 kubectl delete -f database.yaml -f taskbot.yaml
+kubectl delete deployment timofeev-db -n timofeev-ns
+kubectl delete service db -n timofeev-nsk
+kubectl delete deployment timofeev-bot -n timofeev-ns
+kubectl delete service bot-service -n timofeev-ns
 ```
