@@ -25,6 +25,11 @@ spec:
           value: "db"
         - name: POSTGRES_PORT
           value: "{{ .Values.postgres.port }}"
+        - name: TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: bot-secret
+              key: TOKEN
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
