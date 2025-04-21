@@ -1,0 +1,13 @@
+namespace: timofeev-ns
+
+image:
+  bot:
+    repository: cr.yandex/crpo7tdod3sj8k3of2r6/taskbot
+    tag: latest
+  db:
+    repository: cr.yandex/crpo7tdod3sj8k3of2r6/taskbot-db
+    tag: latest
+
+postgres:
+  database: tasks
+  port: 5432
