@@ -18,7 +18,10 @@ spec:
         image: {{ .Values.image.db.repository }}:{{ .Values.image.db.tag }}
         env:
         - name: POSTGRES_DB
-          value: {{ .Values.postgres.database | quote }}
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: POSTGRES_DB
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:

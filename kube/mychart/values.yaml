@@ -9,5 +9,6 @@ image:
     tag: latest
 
 postgres:
+  host: db
   database: tasks
-  port: 5432
+  port: "5432"

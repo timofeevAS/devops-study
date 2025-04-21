@@ -19,17 +19,29 @@ spec:
         ports:
         - containerPort: 8080
         env:
+        # db-config
         - name: POSTGRES_DB
-          value: {{ .Values.postgres.database | quote }}
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: POSTGRES_DB
         - name: POSTGRES_HOST
-          value: "db"
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: POSTGRES_HOST
         - name: POSTGRES_PORT
-          value: "{{ .Values.postgres.port }}"
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: POSTGRES_PORT
+        # secret
         - name: TOKEN
           valueFrom:
             secretKeyRef:
               name: bot-secret
               key: TOKEN
+        # secret
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
