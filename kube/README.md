@@ -8,6 +8,12 @@ cr.yandex/crpo7tdod3sj8k3of2r6/taskbot-db:latest
 
 docker push \
 cr.yandex/crpo7tdod3sj8k3of2r6/taskbot-db:latest
+
+docker tag taskbot \
+cr.yandex/crpo7tdod3sj8k3of2r6/taskbot:latest
+
+docker push \
+cr.yandex/crpo7tdod3sj8k3of2r6/taskbot:latest
 ```
 
 # Useful:
