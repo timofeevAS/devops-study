@@ -3,7 +3,7 @@
 
 # Pushing into YC (registry)
 ```
-docker tag custom-postgres \
+docker tag taskbot-db \
 cr.yandex/crpo7tdod3sj8k3of2r6/taskbot-db:latest
 
 docker push \
@@ -30,7 +30,7 @@ kubectl exec -it <pod> -n timofeev-ns -- \
 
 kubectl delete -f database.yaml -f taskbot.yaml
 kubectl delete deployment timofeev-db -n timofeev-ns
-kubectl delete service db -n timofeev-nsk
+kubectl delete service db -n timofeev-ns
 kubectl delete deployment timofeev-bot -n timofeev-ns
 kubectl delete service bot-service -n timofeev-ns
 ```

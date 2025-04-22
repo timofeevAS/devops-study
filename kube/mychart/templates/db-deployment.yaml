@@ -38,5 +38,6 @@ spec:
         - name: db-data
           mountPath: /var/lib/postgresql/data
       volumes:
-      - name: db-data
-        emptyDir: {}
+          - name: db-data
+            persistentVolumeClaim:
+              claimName: timofeev-pvc
